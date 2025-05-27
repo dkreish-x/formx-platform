@@ -454,4 +454,4 @@ export default function FinancePage() {
               <div className="h-[400px] flex items-center justify-center border rounded-md">
                 <div className="text-center">
                   <ArrowDownRight className="mx-auto h-8 w-8 text-muted-foreground" />
-                  <h3 className="mt-2 text-lg font\
+                  <h3 className="mt-2 text-lg font-medium">Accounts Payable</h3>
