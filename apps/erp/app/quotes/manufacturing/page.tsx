@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-//import { ManufacturingQuoteGenerator } from "@/components/manufacturing-quote-generator"
+import { ManufacturingQuoteGenerator } from "@/components/manufacturing-quote-generator"
 import { Button } from "@/components/ui/button"
 import { Plus, FileText, Send, Download } from "lucide-react"
 
@@ -54,7 +54,7 @@ export default function ManufacturingQuotePage() {
               <CardDescription>Generate detailed quotes for manufacturing services</CardDescription>
             </CardHeader>
             <CardContent>
-              {/* <ManufacturingQuoteGenerator /> */}
+              <ManufacturingQuoteGenerator />
             </CardContent>
           </Card>
         </TabsContent>

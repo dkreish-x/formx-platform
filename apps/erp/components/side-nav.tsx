@@ -446,35 +446,40 @@ function NavGroup({ item, pathname, isOpen, toggleGroup, expanded = true }: NavG
 
   return (
     <div>
-      <button
-        onClick={toggleGroup}
-        className={cn(
-          "flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-          isActive ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground",
-        )}
-        title={!expanded ? item.title : undefined}
-      >
-        <div className="flex items-center gap-3">
+      <div className="flex items-center">
+        <Link
+          href={item.href}
+          className={cn(
+            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors flex-1",
+            isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent hover:text-accent-foreground",
+          )}
+          title={!expanded ? item.title : undefined}
+        >
           <item.icon className="h-4 w-4" />
           {expanded && <span>{item.title}</span>}
-        </div>
+        </Link>
         {expanded && (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={cn("h-4 w-4 transition-transform", isOpen ? "rotate-180" : "")}
+          <button
+            onClick={toggleGroup}
+            className="p-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
           >
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={cn("h-4 w-4 transition-transform", isOpen ? "rotate-180" : "")}
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
         )}
-      </button>
+      </div>
       {expanded && isOpen && item.submenu && (
         <div className="mt-1 ml-4 pl-2 border-l">
           {item.submenu.map((subItem) => (
