@@ -29,9 +29,7 @@ export default function FinancePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Finance</h1>
-          <p className="text-muted-foreground">
-            Manage financial operations and accounting.
-          </p>
+          <p className="text-muted-foreground">Manage financial operations and accounting.</p>
         </div>
         <div className="flex gap-2">
           <Button asChild variant="outline">
@@ -60,7 +58,7 @@ export default function FinancePage() {
             <p className="text-xs text-muted-foreground">+12.3% from last month</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle>Expenses (MTD)</CardTitle>
@@ -71,7 +69,7 @@ export default function FinancePage() {
             <p className="text-xs text-muted-foreground">+5.1% from last month</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle>Accounts Receivable</CardTitle>
@@ -82,7 +80,7 @@ export default function FinancePage() {
             <p className="text-xs text-muted-foreground">$42,350 overdue</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle>Accounts Payable</CardTitle>
@@ -455,3 +453,106 @@ export default function FinancePage() {
                 <div className="text-center">
                   <ArrowDownRight className="mx-auto h-8 w-8 text-muted-foreground" />
                   <h3 className="mt-2 text-lg font-medium">Accounts Payable</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">View and manage your vendor bills and payments.</p>
+                  <Button className="mt-4">View Accounts Payable</Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="reports">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Financial Reports</CardTitle>
+                <Button asChild>
+                  <Link href="/finance/reports/generate">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Generate Report
+                  </Link>
+                </Button>
+              </div>
+              <CardDescription>Generate and view financial reports</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Profit & Loss</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4">View revenue, expenses, and net income</p>
+                    <Button variant="outline" className="w-full">
+                      Generate P&L
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Balance Sheet</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4">View assets, liabilities, and equity</p>
+                    <Button variant="outline" className="w-full">
+                      Generate Balance Sheet
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Cash Flow</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4">View cash inflows and outflows</p>
+                    <Button variant="outline" className="w-full">
+                      Generate Cash Flow
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Aging Reports</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4">View accounts receivable/payable aging</p>
+                    <Button variant="outline" className="w-full">
+                      Generate Aging
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Tax Reports</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4">Generate tax-related reports</p>
+                    <Button variant="outline" className="w-full">
+                      Generate Tax Report
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Custom Reports</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4">Create custom financial reports</p>
+                    <Button variant="outline" className="w-full">
+                      Create Custom
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
+}
