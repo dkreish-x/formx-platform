@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 99.6%; /* #fefefe */
+    --foreground: 240 1% 32.2%; /* #525253 */
+    --card: 0 0% 99.6%; /* #fefefe */
+    --card-foreground: 240 1% 32.2%; /* #525253 */
+    --popover: 0 0% 99.6%; /* #fefefe */
+    --popover-foreground: 240 1% 32.2%; /* #525253 */
+    --primary: 45 42% 64%; /* #d4c273 */
+    --primary-foreground: 0 0% 99.6%; /* #fefefe */
+    --secondary: 45 42% 80%; /* #e8dcaa */
+    --secondary-foreground: 240 1% 32.2%; /* #525253 */
+    --muted: 45 42% 80%; /* #e8dcaa */
+    --muted-foreground: 240 1% 55.3%; /* #908d8d */
+    --accent: 45 42% 80%; /* #e8dcaa */
+    --accent-foreground: 240 1% 32.2%; /* #525253 */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 1% 55.3%; /* #908d8d */
+    --input: 240 1% 55.3%; /* #908d8d */
+    --ring: 45 42% 64%; /* #d4c273 */
+    --radius: 0.75rem;
+    --chart-1: 45 42% 64%; /* #d4c273 */
+    --chart-2: 45 42% 80%; /* #e8dcaa */
+    --chart-3: 240 1% 32.2%; /* #525253 */
+    --chart-4: 240 1% 55.3%; /* #908d8d */
+    --chart-5: 0 0% 99.6%; /* #fefefe */
+  }
+
+  .dark {
+    --background: 240 1% 32.2%; /* #525253 */
+    --foreground: 0 0% 99.6%; /* #fefefe */
+    --card: 240 1% 32.2%; /* #525253 */
+    --card-foreground: 0 0% 99.6%; /* #fefefe */
+    --popover: 240 1% 32.2%; /* #525253 */
+    --popover-foreground: 0 0% 99.6%; /* #fefefe */
+    --primary: 45 42% 64%; /* #d4c273 */
+    --primary-foreground: 240 1% 32.2%; /* #525253 */
+    --secondary: 240 1% 55.3%; /* #908d8d */
+    --secondary-foreground: 0 0% 99.6%; /* #fefefe */
+    --muted: 240 1% 55.3%; /* #908d8d */
+    --muted-foreground: 45 42% 80%; /* #e8dcaa */
+    --accent: 240 1% 55.3%; /* #908d8d */
+    --accent-foreground: 0 0% 99.6%; /* #fefefe */
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 1% 55.3%; /* #908d8d */
+    --input: 240 1% 55.3%; /* #908d8d */
+    --ring: 45 42% 64%; /* #d4c273 */
+    --chart-1: 45 42% 64%; /* #d4c273 */
+    --chart-2: 45 42% 80%; /* #e8dcaa */
+    --chart-3: 0 0% 99.6%; /* #fefefe */
+    --chart-4: 240 1% 55.3%; /* #908d8d */
+    --chart-5: 240 1% 32.2%; /* #525253 */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Smooth transitions */
+* {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Modern focus styles */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
