@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -9,13 +10,41 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AvailabilitySelector } from "@/components/booking/availability-selector"
-import { ShareableLink } from "@/components/booking/shareable-link-generator"
-import { BookingPagePreview } from "@/components/booking/booking-page-preview"
 import { ArrowLeft, Calendar, Clock, Link2, Settings, Users } from "lucide-react"
 import Link from "next/link"
 
+// Dynamically import components that might use window
+const AvailabilitySelector = dynamic(
+  () => import("@/components/booking/availability-selector").then((mod) => ({ default: mod.AvailabilitySelector })),
+  {
+    ssr: false,
+    loading: () => <div className="animate-pulse bg-muted h-32 rounded-lg" />,
+  },
+)
+
+const ShareableLink = dynamic(
+  () => import("@/components/booking/shareable-link-generator").then((mod) => ({ default: mod.ShareableLink })),
+  {
+    ssr: false,
+    loading: () => <div className="animate-pulse bg-muted h-16 rounded-lg" />,
+  },
+)
+
+const BookingPagePreview = dynamic(
+  () => import("@/components/booking/booking-page-preview").then((mod) => ({ default: mod.BookingPagePreview })),
+  {
+    ssr: false,
+    loading: () => <div className="animate-pulse bg-muted h-64 rounded-lg" />,
+  },
+)
+
 export default function BookingSettingsPage() {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const [pageTitle, setPageTitle] = useState("Book a Meeting with John Doe")
   const [pageDescription, setPageDescription] = useState(
     "Select a time slot that works for you, and I'll get back to you with a confirmation.",
@@ -38,6 +67,25 @@ export default function BookingSettingsPage() {
   const [confirmationEmail, setConfirmationEmail] = useState(true)
   const [reminderEmail, setReminderEmail] = useState(true)
   const [reminderTime, setReminderTime] = useState("60")
+
+  if (!mounted) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-muted rounded w-1/3 mb-6"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <div className="h-96 bg-muted rounded-lg"></div>
+            </div>
+            <div className="space-y-6">
+              <div className="h-32 bg-muted rounded-lg"></div>
+              <div className="h-64 bg-muted rounded-lg"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6 p-6">
