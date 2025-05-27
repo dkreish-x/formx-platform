@@ -1,6 +1,7 @@
 "use server"
 
 import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
 
 // Mock user database
 const users = [
@@ -8,7 +9,7 @@ const users = [
     id: "1",
     name: "Demo User",
     email: "demo@formx.com",
-    password: "password123", // In a real app, this would be hashed
+    password: "password123",
     company: "FormX Demo",
   },
 ]
@@ -19,36 +20,21 @@ const partners = [
     id: "p1",
     name: "Partner Company",
     email: "partner@example.com",
-    password: "partner123", // In a real app, this would be hashed
+    password: "partner123",
     partnerCode: "PARTNER001",
     company: "Partner Solutions Inc.",
     isActive: true,
-    totalReferred: 125000,
-    totalCommission: 12500,
   },
 ]
 
-type LoginData = {
-  email: string
-  password: string
-}
+export async function loginUser(formData: FormData) {
+  const email = formData.get("email") as string
+  const password = formData.get("password") as string
+  const callbackUrl = formData.get("callbackUrl") as string
 
-type PartnerLoginData = {
-  email: string
-  password: string
-  partnerCode: string
-}
+  console.log("Login attempt - Callback URL:", callbackUrl)
 
-type RegisterData = {
-  name: string
-  email: string
-  company?: string
-  password: string
-}
-
-export async function loginUser(data: LoginData) {
-  // In a real app, this would check against a database and use proper password hashing
-  const user = users.find((u) => u.email.toLowerCase() === data.email.toLowerCase() && u.password === data.password)
+  const user = users.find((u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password)
 
   if (!user) {
     return {
@@ -57,33 +43,91 @@ export async function loginUser(data: LoginData) {
     }
   }
 
-  // Set a cookie to indicate the user is logged in
-  const cookieStore = cookies()
+  // Set cookies
+  const cookieStore = await cookies()
   cookieStore.set("auth_token", user.id, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 7, // 1 week
+    maxAge: 60 * 60 * 24 * 7,
     path: "/",
   })
 
-  return {
-    success: true,
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      company: user.company,
-    },
+  cookieStore.set("user_type", "user", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60 * 24 * 7,
+    path: "/",
+  })
+
+  // Determine redirect URL
+  let redirectTo = "/dashboard"
+
+  if (callbackUrl && callbackUrl.trim() !== "") {
+    redirectTo = callbackUrl
+    console.log("Redirecting to callback URL:", redirectTo)
+  } else {
+    console.log("No callback URL, redirecting to dashboard")
   }
+
+  redirect(redirectTo)
 }
 
-export async function loginPartner(data: PartnerLoginData) {
-  // In a real app, this would check against a database and use proper password hashing
+export async function registerUser(formData: FormData) {
+  const name = formData.get("name") as string
+  const email = formData.get("email") as string
+  const company = formData.get("company") as string
+  const password = formData.get("password") as string
+  const callbackUrl = formData.get("callbackUrl") as string
+
+  // Check if user already exists
+  const existingUser = users.find((u) => u.email.toLowerCase() === email.toLowerCase())
+
+  if (existingUser) {
+    return {
+      success: false,
+      message: "User with this email already exists",
+    }
+  }
+
+  // Create new user
+  const newUser = {
+    id: (users.length + 1).toString(),
+    name,
+    email,
+    password,
+    company: company || "",
+  }
+
+  users.push(newUser)
+
+  // Set cookies
+  const cookieStore = await cookies()
+  cookieStore.set("auth_token", newUser.id, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60 * 24 * 7,
+    path: "/",
+  })
+
+  cookieStore.set("user_type", "user", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60 * 24 * 7,
+    path: "/",
+  })
+
+  // Redirect
+  const redirectTo = callbackUrl || "/dashboard"
+  redirect(redirectTo)
+}
+
+export async function loginPartner(formData: FormData) {
+  const email = formData.get("email") as string
+  const password = formData.get("password") as string
+  const partnerCode = formData.get("partnerCode") as string
+
   const partner = partners.find(
-    (p) =>
-      p.email.toLowerCase() === data.email.toLowerCase() &&
-      p.password === data.password &&
-      p.partnerCode === data.partnerCode,
+    (p) => p.email.toLowerCase() === email.toLowerCase() && p.password === password && p.partnerCode === partnerCode,
   )
 
   if (!partner) {
@@ -100,140 +144,79 @@ export async function loginPartner(data: PartnerLoginData) {
     }
   }
 
-  // Set cookies to indicate the partner is logged in
-  const cookieStore = cookies()
+  // Set cookies
+  const cookieStore = await cookies()
   cookieStore.set("auth_token", partner.id, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 7, // 1 week
+    maxAge: 60 * 60 * 24 * 7,
     path: "/",
   })
 
-  // Set a partner-specific cookie to identify them as a partner
-  cookieStore.set("partner_token", partner.partnerCode, {
+  cookieStore.set("user_type", "partner", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 7, // 1 week
+    maxAge: 60 * 60 * 24 * 7,
     path: "/",
   })
 
-  return {
-    success: true,
-    partner: {
-      id: partner.id,
-      name: partner.name,
-      email: partner.email,
-      company: partner.company,
-      partnerCode: partner.partnerCode,
-    },
-  }
-}
-
-export async function registerUser(data: RegisterData) {
-  // Check if user already exists
-  const existingUser = users.find((u) => u.email.toLowerCase() === data.email.toLowerCase())
-
-  if (existingUser) {
-    return {
-      success: false,
-      message: "User with this email already exists",
-    }
-  }
-
-  // In a real app, this would create a new user in the database
-  const newUser = {
-    id: (users.length + 1).toString(),
-    name: data.name,
-    email: data.email,
-    password: data.password, // In a real app, this would be hashed
-    company: data.company || "",
-  }
-
-  // Add user to our mock database
-  users.push(newUser)
-
-  // Set a cookie to indicate the user is logged in
-  const cookieStore = cookies()
-  cookieStore.set("auth_token", newUser.id, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 7, // 1 week
-    path: "/",
-  })
-
-  return {
-    success: true,
-    user: {
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-      company: newUser.company,
-    },
-  }
+  // Partners always go to partner portal
+  redirect("/channel-partner")
 }
 
 export async function logoutUser() {
-  const cookieStore = cookies()
-  cookieStore.delete("auth_token")
-  cookieStore.delete("partner_token") // Also delete partner token if it exists
+  const cookieStore = await cookies()
 
-  return {
-    success: true,
-  }
+  cookieStore.set("auth_token", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 0,
+    path: "/",
+  })
+
+  cookieStore.set("user_type", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 0,
+    path: "/",
+  })
+
+  return { success: true }
 }
 
 export async function getCurrentUser() {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const authToken = cookieStore.get("auth_token")
+  const userType = cookieStore.get("user_type")
 
-  if (!authToken) {
+  if (!authToken?.value || !userType?.value) {
     return null
   }
 
-  // Check if this is a partner
-  const partnerToken = cookieStore.get("partner_token")
-  if (partnerToken) {
-    // In a real app, this would fetch the partner from the database
+  if (userType.value === "partner") {
     const partner = partners.find((p) => p.id === authToken.value)
-
-    if (!partner) {
-      return null
+    if (partner) {
+      return {
+        id: partner.id,
+        name: partner.name,
+        email: partner.email,
+        company: partner.company,
+        type: "partner" as const,
+        partnerCode: partner.partnerCode,
+      }
     }
-
-    return {
-      id: partner.id,
-      name: partner.name,
-      email: partner.email,
-      company: partner.company,
-      isPartner: true,
-      partnerCode: partner.partnerCode,
+  } else {
+    const user = users.find((u) => u.id === authToken.value)
+    if (user) {
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        company: user.company,
+        type: "user" as const,
+      }
     }
   }
 
-  // Regular user
-  const user = users.find((u) => u.id === authToken.value)
-
-  if (!user) {
-    return null
-  }
-
-  return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    company: user.company,
-    isPartner: false,
-  }
-}
-
-export async function checkAuth() {
-  const cookieStore = cookies()
-  const authToken = cookieStore.get("auth_token")
-  return !!authToken?.value
-}
-
-export async function checkPartnerAuth() {
-  const cookieStore = cookies()
-  const partnerToken = cookieStore.get("partner_token")
-  return !!partnerToken?.value
+  return null
 }

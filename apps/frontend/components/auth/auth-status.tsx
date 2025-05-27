@@ -1,20 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import type React from "react"
+
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { logoutUser } from "@/actions/auth-actions"
-import { User, LogOut, Settings, FileText, ShoppingCart } from "lucide-react"
+import { User, LogOut, Settings, FileText, ShoppingCart, ChevronDown } from "lucide-react"
 import { toast } from "@/components/ui/use-toast"
 
 type UserData = {
@@ -22,29 +16,49 @@ type UserData = {
   name: string
   email: string
   company?: string
+  isPartner?: boolean
 }
 
 export function AuthStatus() {
   const router = useRouter()
   const [user, setUser] = useState<UserData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Check if auth_token cookie exists
         const cookies = document.cookie.split(";").map((cookie) => cookie.trim())
         const authTokenCookie = cookies.find((cookie) => cookie.startsWith("auth_token="))
+        const partnerTokenCookie = cookies.find((cookie) => cookie.startsWith("partner_token="))
 
-        if (authTokenCookie) {
-          // In a real app with an API, we would fetch user data
-          // For this demo, we'll use mock data instead of making a fetch request
-          setUser({
-            id: "1",
-            name: "Demo User",
-            email: "demo@formx.com",
-            company: "FormX Demo",
-          })
+        console.log("AuthStatus - Checking cookies:", {
+          authTokenCookie: !!authTokenCookie,
+          partnerTokenCookie: !!partnerTokenCookie,
+        })
+
+        if (authTokenCookie && authTokenCookie.split("=")[1]) {
+          const isPartner = !!(partnerTokenCookie && partnerTokenCookie.split("=")[1])
+
+          if (isPartner) {
+            setUser({
+              id: "partner-1",
+              name: "Channel Partner",
+              email: "partner@example.com",
+              company: "Partner Company",
+              isPartner: true,
+            })
+          } else {
+            setUser({
+              id: "user-1",
+              name: "Demo User",
+              email: "demo@formx.com",
+              company: "FormX Demo",
+              isPartner: false,
+            })
+          }
         } else {
           setUser(null)
         }
@@ -59,24 +73,65 @@ export function AuthStatus() {
     checkAuth()
   }, [])
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
+
   const handleLogout = async () => {
+    if (isLoggingOut) return
+
+    setIsLoggingOut(true)
+    setDropdownOpen(false)
+
     try {
+      // Clear user state immediately
+      setUser(null)
+
+      // Call server action to clear cookies (returns success/error, doesn't redirect)
       await logoutUser()
+
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",
       })
-      setUser(null)
+
+      // Navigate to home page
       router.push("/")
       router.refresh()
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to log out. Please try again.",
-        variant: "destructive",
-      })
       console.error("Error logging out:", error)
+
+      // Fallback: manually clear cookies and redirect
+      document.cookie = "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+      document.cookie = "user_type=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+
+      toast({
+        title: "Logged out",
+        description: "You have been logged out.",
+      })
+
+      router.push("/")
+      router.refresh()
+    } finally {
+      setIsLoggingOut(false)
     }
+  }
+
+  const handleAvatarClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    console.log("Avatar clicked! Current dropdown state:", dropdownOpen)
+    setDropdownOpen(!dropdownOpen)
   }
 
   if (isLoading) {
@@ -90,66 +145,118 @@ export function AuthStatus() {
           <Link href="/auth/login">Login</Link>
         </Button>
         <Button size="sm" asChild>
-          <Link href="/auth/signup">Sign Up</Link>
+          <Link href="/auth/login">Sign Up</Link>
         </Button>
       </div>
     )
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-9 w-9 rounded-full" aria-label="User menu">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={`https://avatar.vercel.sh/${user.email}`} alt={user.name} />
-            <AvatarFallback className="bg-primary text-primary-foreground">
-              {user.name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")
-                .toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel>
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.name}</p>
-            <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+    <div className="relative" ref={dropdownRef}>
+      <Button
+        variant="ghost"
+        className="relative h-10 w-10 rounded-full hover:bg-gray-100 focus:bg-gray-100"
+        onClick={handleAvatarClick}
+        type="button"
+      >
+        <Avatar className="h-8 w-8">
+          <AvatarImage src={`https://avatar.vercel.sh/${user.email}`} alt={user.name} />
+          <AvatarFallback className="bg-blue-600 text-white text-sm">
+            {user.name
+              .split(" ")
+              .map((n) => n[0])
+              .join("")
+              .toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <ChevronDown className="h-3 w-3 absolute -bottom-1 -right-1 bg-white rounded-full border" />
+      </Button>
+
+      {/* Custom Dropdown Menu */}
+      {dropdownOpen && (
+        <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
+          {/* User Info */}
+          <div className="px-3 py-2 border-b border-gray-100">
+            <p className="text-sm font-medium text-gray-900">{user.name}</p>
+            <p className="text-xs text-gray-500">{user.email}</p>
+            {user.isPartner && <p className="text-xs text-blue-600 font-medium">Channel Partner</p>}
           </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/dashboard" className="flex items-center cursor-pointer">
-            <User className="mr-2 h-4 w-4" />
-            <span>Dashboard</span>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/cart" className="flex items-center cursor-pointer">
-            <ShoppingCart className="mr-2 h-4 w-4" />
-            <span>Cart</span>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/dashboard/orders" className="flex items-center cursor-pointer">
-            <FileText className="mr-2 h-4 w-4" />
-            <span>Orders</span>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/dashboard/settings" className="flex items-center cursor-pointer">
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout} className="flex items-center cursor-pointer">
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>Log out</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+
+          {/* Menu Items */}
+          <div className="py-1">
+            {user.isPartner ? (
+              <Link
+                href="/channel-partner"
+                className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                onClick={() => setDropdownOpen(false)}
+              >
+                <User className="mr-2 h-4 w-4" />
+                Partner Portal
+              </Link>
+            ) : (
+              <Link
+                href="/dashboard"
+                className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                onClick={() => setDropdownOpen(false)}
+              >
+                <User className="mr-2 h-4 w-4" />
+                Dashboard
+              </Link>
+            )}
+
+            <Link
+              href="/cart"
+              className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              onClick={() => setDropdownOpen(false)}
+            >
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              Cart
+            </Link>
+
+            {!user.isPartner && (
+              <>
+                <Link
+                  href="/orders"
+                  className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  Orders
+                </Link>
+                <Link
+                  href="/quote"
+                  className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  Get Quote
+                </Link>
+              </>
+            )}
+
+            <Link
+              href="/dashboard/settings"
+              className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              onClick={() => setDropdownOpen(false)}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </Link>
+          </div>
+
+          {/* Logout */}
+          <div className="border-t border-gray-100 py-1">
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              {isLoggingOut ? "Logging out..." : "Log out"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
