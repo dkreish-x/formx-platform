@@ -32,7 +32,7 @@ export default function LoginPage() {
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
       // Mock authentication - in real app, this would be an API call
-      if (formData.email === "admin@manufacturing.com" && formData.password === "admin123") {
+      if (formData.email === "admin@manufacturing.com" && formData.password === "Manu123") {
         // Store auth token (in real app, use secure storage)
         localStorage.setItem("auth_token", "mock_token_123")
         localStorage.setItem(
@@ -165,7 +165,7 @@ export default function LoginPage() {
                 <strong>Email:</strong> admin@manufacturing.com
               </p>
               <p>
-                <strong>Password:</strong> admin123
+                <strong>Password:</strong> Manu123
               </p>
             </div>
           </div>
