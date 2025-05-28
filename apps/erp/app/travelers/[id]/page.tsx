@@ -30,6 +30,7 @@ import { ModelViewer } from "@/components/model-viewer"
 import { TimeTracker } from "@/components/time-tracker"
 import { MaterialScanner } from "@/components/material-scanner"
 import { QualityCheckForm } from "@/components/quality-check-form"
+import { FirstArticleSignoff } from "@/components/quality/first-article-signoff"
 
 export default function TravelerDetailPage({ params }: { params: { id: string } }) {
   const [activeTab, setActiveTab] = useState("overview")
@@ -733,6 +734,20 @@ export default function TravelerDetailPage({ params }: { params: { id: string } 
                   ))}
                 </tbody>
               </table>
+            </CardContent>
+          </Card>
+
+          {/* Add this after the quality checks table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>First Article Inspection Sign-off</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FirstArticleSignoff
+                travelerId={traveler.id}
+                partNumber={traveler.partNumber}
+                operation="CNC Milling - Op 10"
+              />
             </CardContent>
           </Card>
 
