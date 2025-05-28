@@ -8,11 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { Save, Edit, Route, DollarSign, Settings, Search, Filter, Wrench, AlertCircle } from "lucide-react"
+import { Save, Edit, Route, DollarSign, Settings, Search, Filter, Wrench, AlertCircle, Plus, Trash } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 interface VolumeBreak {
   id: string
@@ -317,6 +318,36 @@ export default function MarginsPage() {
     }
   }
 
+  const addVolumeBreak = () => {
+    const lastBreak = config.globalSettings.volumeBreaks[config.globalSettings.volumeBreaks.length - 1]
+    const newMinQuantity = lastBreak.maxQuantity ? lastBreak.maxQuantity + 1 : 100
+
+    const newBreak = {
+      id: Date.now().toString(),
+      minQuantity: newMinQuantity,
+      maxQuantity: null,
+      discountPercent: lastBreak.discountPercent + 5,
+    }
+
+    setConfig({
+      ...config,
+      globalSettings: {
+        ...config.globalSettings,
+        volumeBreaks: [...config.globalSettings.volumeBreaks, newBreak],
+      },
+    })
+  }
+
+  const removeVolumeBreak = (id: string) => {
+    setConfig({
+      ...config,
+      globalSettings: {
+        ...config.globalSettings,
+        volumeBreaks: config.globalSettings.volumeBreaks.filter((vb) => vb.id !== id),
+      },
+    })
+  }
+
   const filteredRoutings = config.routings.filter((routing) => {
     // Search filter
     const matchesSearch =
@@ -417,99 +448,16 @@ export default function MarginsPage() {
           {/* Global Tier Multipliers */}
           <Card className="bg-white shadow-sm border-0 rounded-2xl overflow-hidden">
             <CardHeader className="bg-gradient-to-r from-[#e8dcaa]/30 to-[#fefefe] border-b border-[#908d8d] pb-6">
-              {/* Search and Filters */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input
-                      placeholder="Search routings or processes..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 border-[#908d8d] focus:border-[#d4c273] focus:ring-[#d4c273]"
-                    />
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-[#908d8d] hover:bg-[#e8dcaa]/50 text-[#525253]"
-                    onClick={() => {
-                      setSearchTerm("")
-                      setSelectedCategories([])
-                      setSelectedProcesses([])
-                    }}
-                  >
-                    Clear Filters
-                  </Button>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-[#d4c273] rounded-xl flex items-center justify-center">
+                  <DollarSign className="w-5 h-5 text-[#fefefe]" />
                 </div>
-
-                {/* Filter Pills */}
-                <div className="flex flex-wrap gap-3">
-                  {/* Category Filters */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-600">Categories:</span>
-                    {categories.map((category) => (
-                      <label key={category} className="flex items-center gap-2 cursor-pointer">
-                        <Checkbox
-                          checked={selectedCategories.includes(category)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedCategories([...selectedCategories, category])
-                            } else {
-                              setSelectedCategories(selectedCategories.filter((c) => c !== category))
-                            }
-                          }}
-                          className="border-[#908d8d] focus:border-[#d4c273] focus:ring-[#d4c273]"
-                        />
-                        <span className="text-sm text-slate-700">{category}</span>
-                      </label>
-                    ))}
-                  </div>
+                <div>
+                  <CardTitle className="text-xl font-semibold text-slate-900">Pricing Tier Multipliers</CardTitle>
+                  <CardDescription className="text-slate-600 mt-1">
+                    Configure global multipliers for each pricing tier
+                  </CardDescription>
                 </div>
-
-                {/* Process Filters */}
-                <div className="flex flex-wrap gap-2">
-                  <span className="text-sm font-medium text-slate-600 mr-2">Processes:</span>
-                  {allProcesses.slice(0, 8).map((process) => {
-                    const routingCount = getRoutingsByProcess(process).length
-                    const isSelected = selectedProcesses.includes(process)
-                    return (
-                      <Button
-                        key={process}
-                        variant={isSelected ? "default" : "outline"}
-                        size="sm"
-                        className={`text-xs ${isSelected ? "bg-blue-600 text-white" : "hover:bg-blue-50"}`}
-                        onClick={() => {
-                          if (isSelected) {
-                            setSelectedProcesses(selectedProcesses.filter((p) => p !== process))
-                          } else {
-                            setSelectedProcesses([...selectedProcesses, process])
-                          }
-                        }}
-                      >
-                        {process} ({routingCount})
-                      </Button>
-                    )
-                  })}
-                  {allProcesses.length > 8 && (
-                    <span className="text-xs text-slate-500 self-center">+{allProcesses.length - 8} more</span>
-                  )}
-                </div>
-
-                {/* Active Filters Summary */}
-                {(searchTerm || selectedCategories.length > 0 || selectedProcesses.length > 0) && (
-                  <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-                    <div className="flex items-center gap-2 text-sm text-blue-700">
-                      <Filter className="h-4 w-4" />
-                      <span className="font-medium">
-                        Showing {filteredRoutings.length} of {config.routings.length} routings
-                      </span>
-                      {searchTerm && <span>• Search: "{searchTerm}"</span>}
-                      {selectedCategories.length > 0 && <span>• Categories: {selectedCategories.join(", ")}</span>}
-                      {selectedProcesses.length > 0 && <span>• Processes: {selectedProcesses.join(", ")}</span>}
-                    </div>
-                  </div>
-                )}
               </div>
             </CardHeader>
             <CardContent className="p-6">
@@ -580,6 +528,245 @@ export default function MarginsPage() {
                   />
                   <p className="text-xs text-red-600">Premium pricing for expedited delivery</p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Volume Breaks - Scales of Economy */}
+          <Card className="bg-white shadow-sm border-0 rounded-2xl overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-[#e8dcaa]/30 to-[#fefefe] border-b border-[#908d8d] pb-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-[#d4c273] rounded-xl flex items-center justify-center">
+                  <DollarSign className="w-5 h-5 text-[#fefefe]" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-semibold text-slate-900">Volume Breaks</CardTitle>
+                  <CardDescription className="text-slate-600 mt-1">
+                    Configure quantity-based discounts (Scales of Economy)
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="overflow-hidden border border-[#908d8d] rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="hover:bg-transparent border-[#908d8d]">
+                        <TableHead className="w-1/4">Min Quantity</TableHead>
+                        <TableHead className="w-1/4">Max Quantity</TableHead>
+                        <TableHead className="w-1/4">Discount %</TableHead>
+                        <TableHead className="w-1/4 text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {config.globalSettings.volumeBreaks.map((breakPoint, index) => (
+                        <TableRow key={breakPoint.id} className="hover:bg-[#e8dcaa]/20 transition-colors">
+                          <TableCell>
+                            <Input
+                              type="number"
+                              value={breakPoint.minQuantity}
+                              onChange={(e) => {
+                                const newBreaks = [...config.globalSettings.volumeBreaks]
+                                newBreaks[index].minQuantity = Number(e.target.value)
+                                setConfig({
+                                  ...config,
+                                  globalSettings: {
+                                    ...config.globalSettings,
+                                    volumeBreaks: newBreaks,
+                                  },
+                                })
+                              }}
+                              className="border-[#908d8d] focus:border-[#d4c273] focus:ring-[#d4c273]"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              value={breakPoint.maxQuantity || ""}
+                              placeholder="No limit"
+                              onChange={(e) => {
+                                const newBreaks = [...config.globalSettings.volumeBreaks]
+                                newBreaks[index].maxQuantity = e.target.value ? Number(e.target.value) : null
+                                setConfig({
+                                  ...config,
+                                  globalSettings: {
+                                    ...config.globalSettings,
+                                    volumeBreaks: newBreaks,
+                                  },
+                                })
+                              }}
+                              className="border-[#908d8d] focus:border-[#d4c273] focus:ring-[#d4c273]"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              value={breakPoint.discountPercent}
+                              onChange={(e) => {
+                                const newBreaks = [...config.globalSettings.volumeBreaks]
+                                newBreaks[index].discountPercent = Number(e.target.value)
+                                setConfig({
+                                  ...config,
+                                  globalSettings: {
+                                    ...config.globalSettings,
+                                    volumeBreaks: newBreaks,
+                                  },
+                                })
+                              }}
+                              className="border-[#908d8d] focus:border-[#d4c273] focus:ring-[#d4c273]"
+                            />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeVolumeBreak(breakPoint.id)}
+                              disabled={config.globalSettings.volumeBreaks.length <= 1}
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <Button onClick={addVolumeBreak} className="bg-[#d4c273] hover:bg-[#d4c273]/90 text-[#fefefe]">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Volume Break
+                </Button>
+
+                {/* Volume Break Preview */}
+                <div className="mt-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h4 className="font-medium text-blue-900 mb-3">Volume Break Preview</h4>
+                  <div className="grid grid-cols-4 gap-4">
+                    {config.globalSettings.volumeBreaks.map((breakPoint) => (
+                      <div key={breakPoint.id} className="bg-white p-3 rounded-md border border-blue-100 text-center">
+                        <p className="text-sm font-medium text-blue-800">
+                          {breakPoint.minQuantity} - {breakPoint.maxQuantity || "∞"}
+                        </p>
+                        <p className="text-lg font-bold text-blue-900">{breakPoint.discountPercent}% off</p>
+                        <p className="text-xs text-blue-600">
+                          ${(100 * (1 - breakPoint.discountPercent / 100)).toFixed(2)} per $100
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Search and Filters */}
+          <Card className="bg-white shadow-sm border-0 rounded-2xl overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-[#e8dcaa]/30 to-[#fefefe] border-b border-[#908d8d] pb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[#d4c273] rounded-xl flex items-center justify-center">
+                  <Search className="w-5 h-5 text-[#fefefe]" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-semibold text-slate-900">Search & Filter</CardTitle>
+                  <CardDescription className="text-slate-600 mt-1">
+                    Find specific routings by name, category, or process
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      placeholder="Search routings or processes..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 border-[#908d8d] focus:border-[#d4c273] focus:ring-[#d4c273]"
+                    />
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-[#908d8d] hover:bg-[#e8dcaa]/50 text-[#525253]"
+                    onClick={() => {
+                      setSearchTerm("")
+                      setSelectedCategories([])
+                      setSelectedProcesses([])
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+
+                {/* Filter Pills */}
+                <div className="flex flex-wrap gap-3">
+                  {/* Category Filters */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-slate-600">Categories:</span>
+                    {categories.map((category) => (
+                      <label key={category} className="flex items-center gap-2 cursor-pointer">
+                        <Checkbox
+                          checked={selectedCategories.includes(category)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedCategories([...selectedCategories, category])
+                            } else {
+                              setSelectedCategories(selectedCategories.filter((c) => c !== category))
+                            }
+                          }}
+                          className="border-[#908d8d] focus:border-[#d4c273] focus:ring-[#d4c273]"
+                        />
+                        <span className="text-sm text-slate-700">{category}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Process Filters */}
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-sm font-medium text-slate-600 mr-2">Processes:</span>
+                  {allProcesses.slice(0, 8).map((process) => {
+                    const routingCount = getRoutingsByProcess(process).length
+                    const isSelected = selectedProcesses.includes(process)
+                    return (
+                      <Button
+                        key={process}
+                        variant={isSelected ? "default" : "outline"}
+                        size="sm"
+                        className={`text-xs ${isSelected ? "bg-[#d4c273] text-white" : "hover:bg-[#e8dcaa]/50"}`}
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedProcesses(selectedProcesses.filter((p) => p !== process))
+                          } else {
+                            setSelectedProcesses([...selectedProcesses, process])
+                          }
+                        }}
+                      >
+                        {process} ({routingCount})
+                      </Button>
+                    )
+                  })}
+                  {allProcesses.length > 8 && (
+                    <span className="text-xs text-slate-500 self-center">+{allProcesses.length - 8} more</span>
+                  )}
+                </div>
+
+                {/* Active Filters Summary */}
+                {(searchTerm || selectedCategories.length > 0 || selectedProcesses.length > 0) && (
+                  <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                    <div className="flex items-center gap-2 text-sm text-blue-700">
+                      <Filter className="h-4 w-4" />
+                      <span className="font-medium">
+                        Showing {filteredRoutings.length} of {config.routings.length} routings
+                      </span>
+                      {searchTerm && <span>• Search: "{searchTerm}"</span>}
+                      {selectedCategories.length > 0 && <span>• Categories: {selectedCategories.join(", ")}</span>}
+                      {selectedProcesses.length > 0 && <span>• Processes: {selectedProcesses.join(", ")}</span>}
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

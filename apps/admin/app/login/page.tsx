@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Building2, Eye, EyeOff, AlertCircle, Lock } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/components/auth-provider"
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -21,6 +22,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
+  const { login } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,25 +30,11 @@ export default function LoginPage() {
     setError("")
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const success = await login(formData.email, formData.password)
 
-      // Mock authentication - in real app, this would be an API call
-      if (formData.email === "admin@manufacturing.com" && formData.password === "Manu123") {
-        // Store auth token (in real app, use secure storage)
-        localStorage.setItem("auth_token", "mock_token_123")
-        localStorage.setItem(
-          "user_data",
-          JSON.stringify({
-            id: "1",
-            email: formData.email,
-            name: "Admin User",
-            role: "admin",
-            permissions: ["materials", "processes", "routings", "finishes", "margins", "features", "versions"],
-          }),
-        )
-
-        router.push("/")
+      if (success) {
+        // Redirect to materials page after successful login
+        router.push("/materials")
       } else {
         setError("Invalid email or password")
       }
@@ -165,7 +153,7 @@ export default function LoginPage() {
                 <strong>Email:</strong> admin@manufacturing.com
               </p>
               <p>
-                <strong>Password:</strong> Manu123
+                <strong>Password:</strong> admin123
               </p>
             </div>
           </div>

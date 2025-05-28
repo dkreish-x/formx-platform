@@ -57,6 +57,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
       // Mock authentication - replace with real API call
       if (email === "admin@manufacturing.com" && password === "admin123") {
         const userData: User = {
